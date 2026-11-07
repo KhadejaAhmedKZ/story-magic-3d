@@ -170,13 +170,34 @@ input[type=range]::-moz-range-thumb { width: 24px; height: 24px; border-radius: 
 @keyframes kb3 { from { transform: scale(1.1) translate(0, -2%); } to { transform: scale(1.02) translate(0, 1%); } }
 @keyframes driftzoom { from { transform: scale(1); } to { transform: scale(1.04); } }
 
-.card { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; overflow: hidden;
+.card { position: absolute; inset: 0; display: grid; place-items: center; overflow: hidden; container-type: size;
   background: linear-gradient(135deg, #ffd6e8, #e5d9ff 50%, #cfe9ff); }
-.card::before { content: ""; position: absolute; inset: -30px; background: var(--bg) center / cover; filter: blur(14px); opacity: 0.45; }
-.card-inner { position: relative; padding: 0 6%; }
-.card-emoji { font-size: clamp(30px, 6vw, 64px); }
-.card h1 { margin: 6px 0; font-size: clamp(28px, 6vw, 68px); line-height: 1.05; color: #5b3b8c; text-shadow: 0 3px 0 #fff; }
-.card p { margin: 0; font-size: clamp(16px, 3.2vw, 38px); font-weight: 700; color: #8a5fb8; }
+.card::before { content: ""; position: absolute; inset: -30px; background: var(--bg) center / cover; filter: blur(16px); opacity: 0.4; }
+.card-inner { position: relative; z-index: 1; display: flex; align-items: center; gap: 4%; width: 88%; }
+.card-text { flex: 1; text-align: left; }
+.card.end .card-inner { flex-direction: row-reverse; }
+.card.end .card-text { text-align: right; }
+.hero-bubble {
+  flex: none; width: 34%; aspect-ratio: 1; border-radius: 50%; overflow: hidden; border: 6px solid #fff;
+  box-shadow: 0 18px 40px -16px rgba(90, 50, 140, 0.55); animation: heroIn 1.4s ease-out both, heroBob 4.5s ease-in-out 1.4s infinite;
+}
+.hero-bubble img { width: 100%; height: 100%; object-fit: cover; display: block; }
+@keyframes heroIn { from { opacity: 0; transform: translateY(24px) scale(0.85); } to { opacity: 1; transform: none; } }
+@keyframes heroBob { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-10px) rotate(2deg); } }
+.card-emoji { font-size: clamp(22px, 4.5vw, 52px); animation: heroIn 1.2s ease-out both; }
+.card h1 { margin: 6px 0; font-size: clamp(22px, 5vw, 62px); line-height: 1.08; color: #5b3b8c; text-shadow: 0 3px 0 #fff; }
+.card h1 .word { display: inline-block; white-space: nowrap; }
+.card h1 .pop { display: inline-block; animation: popIn 0.6s cubic-bezier(.34,1.56,.64,1) both; }
+@keyframes popIn { from { opacity: 0; transform: translateY(14px) scale(0.6); } to { opacity: 1; transform: none; } }
+.card p { margin: 0; font-size: clamp(14px, 2.8vw, 34px); font-weight: 700; color: #8a5fb8; animation: heroIn 1s ease-out both; }
+.floaty { position: absolute; bottom: -12%; font-size: clamp(18px, 3.4vw, 40px); opacity: 0.75; animation: floatUp linear infinite; z-index: 0; }
+@keyframes floatUp {
+  from { transform: translate(0, 0) rotate(-6deg); }
+  50% { transform: translate(14px, -60cqh) rotate(6deg); }
+  to { transform: translate(-6px, -125cqh) rotate(-4deg); }
+}
+.stage.paused .card *, .stage.paused .card { animation-play-state: paused !important; }
+@media (max-width: 560px) { .hero-bubble { border-width: 3px; } }
 
 .captions {
   position: absolute; left: 50%; transform: translateX(-50%); bottom: 3.5%; width: min(84%, 860px);
@@ -191,11 +212,12 @@ input[type=range]::-moz-range-thumb { width: 24px; height: 24px; border-radius: 
 .captions .now { color: var(--sun); }
 
 .big-play {
-  position: absolute; left: 0; right: 0; bottom: 7%; margin: 0 auto; width: 230px; height: 150px; border-radius: 40px; border: 4px solid #fff;
-  background: rgba(255, 255, 255, 0.85); font-size: 56px; display: grid; place-items: center; box-shadow: var(--shadow);
-  transition: opacity 1s;
+  position: absolute; right: 3%; bottom: 5%; display: flex; align-items: center; gap: 8px; padding: 10px 22px 10px 14px;
+  border-radius: 999px; border: 4px solid #fff; z-index: 3;
+  background: linear-gradient(135deg, #ff9ec4, #b994ff 55%, #7cc8ff); color: #fff; font-size: 30px;
+  box-shadow: 0 12px 26px -10px rgba(120, 70, 200, 0.7); transition: opacity 1s; animation: bob 5s ease-in-out infinite;
 }
-.big-play span { font-size: 20px; font-weight: 800; color: var(--ink); margin-top: -14px; }
+.big-play span { font-size: 20px; font-weight: 800; color: #fff; text-shadow: 0 2px 0 rgba(90, 40, 140, 0.3); }
 .big-play.hide { opacity: 0; pointer-events: none; }
 
 .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 14px; justify-content: center; }
@@ -212,7 +234,7 @@ input[type=range]::-moz-range-thumb { width: 24px; height: 24px; border-radius: 
 @media (max-width: 560px) {
   .controls .pill span { display: none; }
   .stage { border-radius: 18px; border-width: 3px; }
-  .big-play { width: 150px; height: 96px; font-size: 34px; bottom: 4%; } .big-play span { font-size: 15px; }
+  .big-play { font-size: 20px; padding: 6px 14px 6px 10px; border-width: 3px; } .big-play span { font-size: 14px; }
 }
 
 /* ───── dialog + toast ───── */
@@ -229,7 +251,7 @@ dialog::backdrop { background: rgba(80, 50, 120, 0.35); backdrop-filter: blur(3p
 .toast.on { opacity: 1; }
 
 @media (prefers-reduced-motion: reduce) {
-  .cloud, .logo, .book, .orbit, .layer.kenburns, .layer.drift, .mic.listening { animation: none !important; }
+  .cloud, .logo, .book, .orbit, .layer.kenburns, .layer.drift, .mic.listening, .hero-bubble, .floaty, .card h1 .pop { animation: none !important; }
 }
 
 /* while "Download my movie" records, the movie must play straight through */
@@ -238,3 +260,7 @@ dialog::backdrop { background: rgba(80, 50, 120, 0.35); backdrop-filter: blur(3p
 
 .friendly { margin: 4px 0 6px; padding: 12px 16px; border-radius: 20px; background: #fff6d6; border: 2px solid #ffe08a; text-align: center; font-weight: 700; font-size: 17px; }
 .voice { cursor: pointer; justify-content: center; padding: 12px; }
+
+.kind { display: flex; gap: 10px; flex-wrap: wrap; }
+.kind button { flex: 1; min-width: 110px; border: 3px solid #eadff9; background: #fff; border-radius: 20px; padding: 10px; font-weight: 700; font-size: 17px; transition: border-color .4s, background .4s; }
+.kind button[aria-checked=true] { border-color: #b18cff; background: #f4eeff; }

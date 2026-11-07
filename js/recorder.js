@@ -102,21 +102,41 @@ function drawCard(g, card, W, H) {
     const i = new Image(); i.src = m[1]; return i;
   })());
   if (bgImg?.complete && bgImg.naturalWidth) {
-    g.save(); g.filter = "blur(14px)"; g.globalAlpha *= 0.45;
+    g.save(); g.filter = "blur(16px)"; g.globalAlpha *= 0.4;
     drawCover(g, bgImg, W, H, 1.1); g.restore();
   }
-  const h1 = card.querySelector("h1")?.textContent || "";
-  const p = card.querySelector("p")?.textContent || "";
-  const emoji = card.querySelector(".card-emoji")?.textContent || "";
-  g.textAlign = "center";
-  g.fillStyle = "#5b3b8c";
-  g.font = "64px 'Baloo 2', system-ui";
-  g.fillText(emoji, W / 2, H / 2 - 110);
-  g.font = "800 68px 'Baloo 2', system-ui";
-  wrap(g, h1, W / 2, H / 2, W - 200, 74);
-  g.fillStyle = "#8a5fb8";
-  g.font = "600 38px 'Baloo 2', system-ui";
-  g.fillText(p, W / 2, H / 2 + 140);
+  // Mirror the live DOM (positions include the running CSS animations).
+  const box = card.getBoundingClientRect();
+  if (!box.width) return;
+  const k = W / box.width;
+  const R = (el) => { const r = el.getBoundingClientRect(); return { x: (r.left - box.left) * k, y: (r.top - box.top) * k, w: r.width * k, h: r.height * k }; };
+  const alpha = (el) => { let a = 1; for (let e = el; e && e !== card; e = e.parentElement) a *= parseFloat(getComputedStyle(e).opacity); return a; };
+  const text = (el, weight, color) => {
+    const r = R(el), cs = getComputedStyle(el);
+    g.save();
+    g.globalAlpha *= alpha(el);
+    g.font = `${weight} ${parseFloat(cs.fontSize) * k}px 'Baloo 2', system-ui`;
+    g.fillStyle = color || cs.color;
+    g.textBaseline = "middle"; g.textAlign = "center";
+    g.fillText(el.textContent, r.x + r.w / 2, r.y + r.h / 2);
+    g.restore();
+  };
+  card.querySelectorAll(".floaty, .card-emoji").forEach((el) => text(el, 400));
+  const bubble = card.querySelector(".hero-bubble");
+  const img = bubble?.querySelector("img");
+  if (bubble && img?.complete && img.naturalWidth) {
+    const r = R(bubble), cx = r.x + r.w / 2, cy = r.y + r.h / 2, rad = Math.min(r.w, r.h) / 2;
+    g.save();
+    g.globalAlpha *= alpha(bubble);
+    g.beginPath(); g.arc(cx, cy, rad, 0, Math.PI * 2); g.fillStyle = "#fff"; g.fill();
+    g.beginPath(); g.arc(cx, cy, rad - 6 * k, 0, Math.PI * 2); g.clip();
+    const s = Math.max((2 * rad) / img.naturalWidth, (2 * rad) / img.naturalHeight);
+    g.drawImage(img, cx - (img.naturalWidth * s) / 2, cy - (img.naturalHeight * s) / 2, img.naturalWidth * s, img.naturalHeight * s);
+    g.restore();
+  }
+  card.querySelectorAll("h1 .pop").forEach((el) => text(el, 800));
+  const p = card.querySelector("p");
+  if (p) text(p, 700);
 }
 
 function wrap(g, text, x, y, maxW, lh) {

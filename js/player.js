@@ -125,6 +125,7 @@ export class Player {
     this.stopNarration();
     if (i >= this.items.length) return this.finish();
     this.index = i;
+    this.holdT = null;
     const it = this.items[i];
     if (it.kind === "scene") {
       // a clip may have arrived late: recompute timing = max(clip, narration + breathing room)
@@ -147,7 +148,7 @@ export class Player {
       // slow the clip down (never below 0.5×) so it covers the narration; then hold last frame
       // never slower than 0.75× (keeps motion smooth); after the clip ends the last frame holds
       // while the layer keeps its slow drift-zoom, so the picture never freezes harshly
-      const rate = it.clipDuration ? Math.max(0.75, Math.min(1, it.clipDuration / (it.duration - 0.4))) : 1;
+      const rate = it.clipDuration ? Math.max(0.85, Math.min(1, it.clipDuration / (it.duration - 0.4))) : 1;
       video.defaultPlaybackRate = rate;
       video.playbackRate = rate;
       incoming.appendChild(video);
@@ -189,16 +190,42 @@ export class Player {
     const d = document.createElement("div");
     d.className = `card ${it.kind}`;
     if (it.bg) d.style.setProperty("--bg", `url("${it.bg}")`);
-    if (it.kind === "title") {
-      d.innerHTML = `<div class="card-inner"><div class="card-emoji">✨📖✨</div>
-        <h1></h1><p></p></div>`;
-      d.querySelector("h1").textContent = this.movie.title;
-      d.querySelector("p").textContent = `A story made just for ${this.movie.name}`;
-    } else {
-      d.innerHTML = `<div class="card-inner"><div class="card-emoji">🌙⭐</div>
-        <h1>The End</h1><p></p></div>`;
-      d.querySelector("p").textContent = `Goodnight, ${this.movie.name}!`;
-    }
+    const title = it.kind === "title";
+    // slow drifting decorations (no twinkling, no flashing)
+    const deco = title ? ["⭐", "☁️", "🫧", "✨", "🎈", "🫧", "⭐", "☁️"] : ["⭐", "🌙", "☁️", "✨", "⭐", "🫧", "⭐", "☁️"];
+    const floaties = deco.map((e, k) =>
+      `<span class="floaty" style="left:${6 + k * 12 + (k % 2) * 4}%;animation-delay:${-k * 2.1}s;animation-duration:${13 + (k % 3) * 3}s">${e}</span>`
+    ).join("");
+    d.innerHTML = `${floaties}
+      <div class="card-inner">
+        ${it.bg ? `<div class="hero-bubble"><img alt=""></div>` : ""}
+        <div class="card-text">
+          <div class="card-emoji">${title ? "✨📖✨" : "🌙⭐"}</div>
+          <h1></h1><p></p>
+        </div>
+      </div>`;
+    if (it.bg) d.querySelector(".hero-bubble img").src = it.bg;
+    const h1 = d.querySelector("h1");
+    const text = title ? this.movie.title : "The End";
+    // letters pop in one by one (each fades/grows over 0.6 s — gentle, no flashing)
+    let k = 0;
+    text.split(" ").forEach((word, wi) => {
+      if (wi) h1.appendChild(document.createTextNode(" "));
+      const w = document.createElement("span");
+      w.className = "word"; // keeps each word on one line
+      [...word].forEach((ch) => {
+        const s = document.createElement("span");
+        s.className = "pop";
+        s.textContent = ch;
+        s.style.animationDelay = `${0.5 + k++ * 0.05}s`;
+        w.appendChild(s);
+      });
+      h1.appendChild(w);
+    });
+    h1.setAttribute("aria-label", text);
+    const p = d.querySelector("p");
+    p.textContent = title ? `A story made just for ${this.movie.name}` : `Goodnight, ${this.movie.name}!`;
+    p.style.animationDelay = `${0.9 + text.length * 0.05}s`;
     return d;
   }
 
@@ -257,7 +284,10 @@ export class Player {
       }
       const elapsed = t - this.itemStart;
       this.emit("time", this.index, elapsed, it.duration);
-      if (elapsed >= it.duration && this.narrDone) {
+      const nx = this.items[this.index + 1];
+      if (elapsed >= it.duration && this.narrDone && nx?.pending && t - (this.holdT ??= t) < 15) {
+        // the next scene's clip is still rendering: linger here a little (max 15 s) so it can play animated
+      } else if (elapsed >= it.duration && this.narrDone) {
         this.startItem(this.index + 1);
       } else if (elapsed >= it.duration + 25) {
         this.narrDone = true; // safety: never get stuck

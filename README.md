@@ -104,6 +104,13 @@ Testing switches: `?wait=20` changes the 2-minute cutoff; `?voice=kokoro` / `?vo
 6. **The 2-minute promise**: when `maxWaitSeconds` (110 s) is reached, the movie starts anyway. A clip that is still rendering keeps going and swaps in before its scene plays. If it never arrives, that scene uses its 3D still with a slow camera drift.
 7. **Player**: title card → 6 scenes → "The End: Goodnight, name!", with ≥ 1.6 s crossfades, a new Web Audio lullaby every time that gets quieter under the narrator, and play/pause, replay, music toggle, scene dots, new story and **Download my movie** (records the movie with narration and music to MP4 in Chrome, or WebM elsewhere).
 
+## Fun, but safe
+
+- **Lively clips:** each scene asks Hailuo for one playful, clearly visible action with both hero and sidekick moving the whole clip (hopping, twirling, waving, splashing, a happy dance) and big expressive faces. Clips play at 0.85× or faster, so there's no sleepy slow motion.
+- **Animated title and end cards:** the hero bobs in a bubble, letters pop in one by one, and stars, bubbles and balloons drift up slowly.
+- **Girl / boy / surprise me** picker so the hero looks the way the child wants; with "surprise me" the story uses the child's name instead of he/she.
+- **Rate limits:** if MiniMax says "too many requests this minute", the clip or image waits and retries (6 s, 12 s, …) instead of falling back to a still.
+
 ## Epilepsy safety
 
 - No cuts anywhere: every change is a crossfade of at least 1 s (1.6 s by default). UI animations are slow (6 s+ cycles) and there are no blinking effects.

@@ -45,6 +45,11 @@ function initForm() {
     vbox.appendChild(d);
   });
 
+  const kind = $("#kind");
+  kind.querySelectorAll("button").forEach((b) => (b.onclick = () => {
+    kind.querySelectorAll("button").forEach((x) => x.setAttribute("aria-checked", x === b ? "true" : "false"));
+  }));
+
   initMic();
   $("#story-form").addEventListener("submit", onSubmit);
   checkMagic();
@@ -93,6 +98,7 @@ function onSubmit(e) {
     age: +$("#f-age").value,
     favorite: $("#f-fav").value.trim().slice(0, 40),
     idea: $("#f-idea").value.trim().slice(0, 300),
+    kind: $("#kind [aria-checked=true]")?.dataset.kind || "",
   };
   ensureCtx(); // created inside the click → audio is allowed later
   setOffline(!state.online);
@@ -271,6 +277,7 @@ async function generate(input) {
       ...story.scenes.map((s, i) => ({
         kind: "scene", n: i + 1, text: s.text, still: stills[i],
         clip: clips[i] || { type: "still", src: stills[i].src }, clipDuration: 0, narration: narr[i + 1],
+        pending: !clips[i] && prog.vids < N, // clip still rendering (cleared when it settles)
       })),
       { kind: "end", narration: narr[texts.length - 1], bg: stills[N - 1]?.src || hero.src },
     ];
@@ -279,10 +286,12 @@ async function generate(input) {
     // late clips swap in before their scene plays
     clipPromises.forEach((p, i) => p.then(async (c) => {
       const it = items[i + 1];
+      if (!c) it.pending = false;
       if (c && it.clip.type !== "video") {
         it.clipDuration = await videoDuration(c.src);
         it.clip = c;
       }
+      it.pending = false;
       state.player?.refreshNote?.();
     }));
 

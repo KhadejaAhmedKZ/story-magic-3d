@@ -18,9 +18,10 @@ const API = "https://api.minimax.io";
 
 const STYLE =
   "Soft 3D animated children's film, Pixar style render, adorable rounded characters, big expressive eyes, " +
-  "warm golden lighting, pastel colors, smooth gentle motion, calm lighting, no flashing, no strobe, no text.";
+  "warm golden lighting, pastel colors, lively expressive character animation, playful bouncy cartoon movement, " +
+  "smooth natural motion, calm steady lighting, no flashing, no strobe, no text.";
 const SAFETY =
-  "Calm steady lighting, no flashing, no strobe, no flickering, no fast cuts, no sudden brightness changes, slow gentle motion. Full-frame 16:9 picture, no letterbox, no black bars.";
+  "Calm steady lighting, no flashing, no strobe, no flickering, no fast cuts, no sudden brightness changes, smooth camera with no cuts. Full-frame 16:9 picture, no letterbox, no black bars.";
 
 const VOICES = {
   storyteller: "English_CaptivatingStoryteller",
@@ -29,10 +30,10 @@ const VOICES = {
   papa: "English_Gentle-voiced_man",
   grandpa: "English_WiseScholar",
 };
-const CAMERA = ["[Push in]", "[Truck right]", "[Pan left]", "[Pull out]", "[Tilt up]", "[Push in]"];
+const CAMERA = ["[Push in]", "[Tracking shot]", "[Truck left]", "[Pull out]", "[Tracking shot]", "[Push in]"];
 
 // per-story ceilings (a story normally uses 7 images, 6 clips, 8 voice lines)
-const PER_STORY = { image: 12, video: 9, tts: 14 };
+const PER_STORY = { image: 12, video: 10, tts: 14 };
 
 export default {
   async fetch(req, env, ctx) {
@@ -83,6 +84,7 @@ async function story(req, env, cors) {
     age: Math.min(12, Math.max(3, int(b.age, 6))),
     favorite: clean(b.favorite, 40),
     idea: clean(b.idea, 300),
+    kind: b.kind === "girl" || b.kind === "boy" ? b.kind : "",
   };
   let s;
   try {
@@ -92,6 +94,7 @@ async function story(req, env, cors) {
     try { s = validateStory(b.fallback, input); s.fallback = true; } catch { throw e; }
   }
 
+  if (input.kind) s.kind = input.kind;
   // count it only once a story was really produced
   const ttl = { expirationTtl: 60 * 60 * 24 * 40 };
   await Promise.all([
@@ -105,20 +108,22 @@ async function story(req, env, cors) {
   return json({ story: s, token, left: perDevice - dCount - 1 }, 200, cors);
 }
 
-function storyPrompt({ name, age, favorite, idea }) {
+function storyPrompt({ name, age, favorite, idea, kind }) {
   return `You write gentle, kind bedtime stories for young children.
 Write a NEW story for ${name}, age ${age}. ${name} is the hero.
 Story idea from the child: "${idea || "a surprise adventure"}".
 Their favorite thing: "${favorite || "stars"}" — include it in the story.
 
 Rules:
-- Exactly 6 scenes. Each scene "text" = exactly 2 short sentences, 22 to 28 words total, simple words for a ${age}-year-old.
+- Exactly 6 scenes. Each scene "text" = exactly 2 short, fun sentences, 18 to 24 words total, simple words for a ${age}-year-old.
 - Kind and calm. No danger, no villains, nothing scary. A small problem solved with kindness or courage.
-- Never guess whether ${name} is a boy or a girl: do NOT use he/she/him/her/his/hers for ${name}. Use the name "${name}" (or "they") instead. The sidekick may have pronouns.
+${kind
+    ? `- ${name} is a ${kind}. Use ${kind === "girl" ? "she/her" : "he/him"} for ${name}, and in "character" describe ${name} as a ${age}-year-old ${kind}.`
+    : `- Never guess whether ${name} is a boy or a girl: do NOT use he/she/him/her/his/hers for ${name}. Use the name "${name}" (or "they") instead. The sidekick may have pronouns.`}
 - Scene 6 ends with a small, warm lesson.
 - "character": ONE fixed visual description of ${name} for an animator: approximate age, hair, skin tone, outfit with colors, plus one cute sidekick (species + colors). 25-40 words. It never changes between scenes.
 - "setting": the main place of the story with colors and light, 10-20 words.
-- "video_prompt" for each scene: describe ONE simple, gentle action of the hero and sidekick and where they are, 15-30 words. Do NOT describe the hero's looks. No text, no signs, no flashing lights, no lightning, no fireworks, no fast motion.
+- "video_prompt" for each scene: ONE lively, fun, clearly visible action that keeps BOTH the hero and the sidekick moving for the whole clip (for example: hopping along, twirling, waving, giggling and bouncing, chasing bubbles or butterflies, splashing in puddles, sliding down a soft hill, a happy dance, a big hug), with big happy expressive faces, plus where they are. 15-30 words. Do NOT describe the hero's looks. No text, no signs, no flashing or blinking lights, no lightning, no fireworks, no explosions.
 - "mood": one or two words (e.g. "cozy", "dreamy", "playful").
 
 Reply with ONLY this JSON:
@@ -176,13 +181,14 @@ function validateStory(s, input) {
 async function image(req, env, cors) {
   const b = await req.json();
   const { sid, story: s } = await authStory(env, b.token);
-  await spend(env, sid, "image");
+  const commit = await spend(env, sid, "image");
+  const who = s.kind ? `The hero is a cute little ${s.kind}${s.kind === "girl" ? " with a clearly girlish look" : ""}. ` : "";
   let prompt;
   if (b.kind === "hero") {
-    prompt = `${STYLE} Character portrait, front view, waist-up, smiling warmly at the camera, soft plain pastel background, cinematic soft light. ${s.character}`;
+    prompt = `${STYLE} Character portrait, front view, waist-up, smiling warmly at the camera, soft plain pastel background, cinematic soft light. ${who}${s.character}`;
   } else {
     const i = Math.min(5, Math.max(0, int(b.scene, 0)));
-    prompt = `${STYLE} Wide cinematic film still, 16:9. ${s.character} ${s.setting ? "Setting: " + s.setting + "." : ""} Scene: ${s.scenes[i].video_prompt} The hero is clearly visible, mid-shot, centered, facing the camera at a gentle angle.`;
+    prompt = `${STYLE} Wide cinematic film still, 16:9. ${who}${s.character} ${s.setting ? "Setting: " + s.setting + "." : ""} Scene: ${s.scenes[i].video_prompt} The hero is clearly visible, mid-shot, caught mid-action in a lively, playful pose with a big happy expressive face; the sidekick is playing too.`;
   }
   if (env.MOCK === "1") return json({ image: await mockImage(env, b.kind === "hero" ? "hero" : `scene${int(b.scene, 0) + 1}`) }, 200, cors);
 
@@ -200,6 +206,7 @@ async function image(req, env, cors) {
   const r = await mm(env, "/v1/image_generation", body);
   const b64 = r?.data?.image_base64?.[0];
   if (!b64) throw err(502, "image_failed", r?.base_resp?.status_msg || "no image");
+  await commit();
   return json({ image: `data:image/jpeg;base64,${b64}` }, 200, cors);
 }
 
@@ -207,12 +214,12 @@ async function image(req, env, cors) {
 async function videoStart(req, env, cors) {
   const b = await req.json();
   const { sid, story: s } = await authStory(env, b.token);
-  await spend(env, sid, "video");
+  const commit = await spend(env, sid, "video");
   const i = Math.min(5, Math.max(0, int(b.scene, 0)));
   if (env.MOCK === "1") return json({ taskId: `mock-${i + 1}-${Date.now()}` }, 200, cors);
   if (!/^data:image\/(jpeg|png|webp);base64,/.test(b.firstFrame || "")) throw err(400, "first_frame_required");
 
-  const prompt = `${CAMERA[i]} ${STYLE} ${s.scenes[i].video_prompt} The same character throughout: ${s.character} ${SAFETY}`;
+  const prompt = `${CAMERA[i]} ${s.scenes[i].video_prompt} The characters keep moving playfully through the whole clip, with lively, bouncy, expressive cartoon animation and big happy faces. ${STYLE} Same character throughout: ${s.kind ? `a little ${s.kind}, ` : ""}${s.character} ${SAFETY}`;
   const r = await mm(env, "/v1/video_generation", {
     model: env.VIDEO_MODEL || "MiniMax-Hailuo-2.3-Fast",
     prompt: prompt.slice(0, 1990),
@@ -223,6 +230,7 @@ async function videoStart(req, env, cors) {
     fast_pretreatment: true,
   });
   if (!r?.task_id) throw err(502, "video_failed", r?.base_resp?.status_msg || "no task");
+  await commit();
   await env.QUOTA.put(`task:${r.task_id}`, sid, { expirationTtl: 3 * 3600 });
   return json({ taskId: r.task_id }, 200, cors);
 }
@@ -265,7 +273,7 @@ async function videoFile(url, env, cors) {
 async function tts(req, env, cors) {
   const b = await req.json();
   const { sid } = await authStory(env, b.token);
-  await spend(env, sid, "tts");
+  const commit = await spend(env, sid, "tts");
   const text = clean(b.text, 600);
   if (!text) throw err(400, "no_text");
   if (env.MOCK === "1") throw err(503, "mock_no_tts"); // browser falls back to Kokoro in mock mode
@@ -274,13 +282,14 @@ async function tts(req, env, cors) {
     model: env.TTS_MODEL || "speech-2.8-hd",
     text,
     stream: false,
-    voice_setting: { voice_id: voice, speed: 0.92, vol: 1, pitch: 0, emotion: "calm" },
+    voice_setting: { voice_id: voice, speed: 1.0, vol: 1, pitch: 0, emotion: "happy" },
     audio_setting: { sample_rate: 32000, bitrate: 128000, format: "mp3", channel: 1 },
     subtitle_enable: true,
     subtitle_type: "word",
   });
   const hex = r?.data?.audio;
   if (!hex) throw err(502, "tts_failed", r?.base_resp?.status_msg || "no audio");
+  await commit();
   let words = null;
   try {
     if (r.data.subtitle_file) {
@@ -335,11 +344,13 @@ async function authTask(env, token, task) {
   if (env.MOCK !== "1" && owner !== t.sid) throw err(403, "not_your_task");
 }
 
+// Per-story allowance: check before calling MiniMax, count only after MiniMax accepted the
+// request (so a rate-limited or failed call doesn't use up the story's allowance).
 async function spend(env, sid, kind) {
   const k = `u:${sid}:${kind}`;
   const n = await kvInt(env, k);
   if (n >= PER_STORY[kind]) throw err(429, "story_limit", `${kind} limit for this story`);
-  await env.QUOTA.put(k, String(n + 1), { expirationTtl: 3 * 3600 });
+  return () => env.QUOTA.put(k, String(n + 1), { expirationTtl: 3 * 3600 });
 }
 
 async function makeToken(env, payload) {

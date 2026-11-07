@@ -10,7 +10,7 @@ export async function characterImage(story, token) {
   if (CONFIG.imageProvider === "proxy" && token) {
     for (let a = 0; a < 2; a++) {
       try {
-        const r = await api("/api/image", { body: { token, kind: "hero" }, timeoutMs: 45000 });
+        const r = await withRetry(() => api("/api/image", { body: { token, kind: "hero" }, timeoutMs: 45000 }));
         return { src: r.image, source: "proxy" };
       } catch (e) {
         console.warn("[image] hero failed:", e.code, e.message);
@@ -27,7 +27,7 @@ export async function sceneImage(story, i, hero, token) {
       try {
         const body = { token, kind: "scene", scene: i };
         if (hero?.source === "proxy" && a === 0) body.refImage = hero.src; // keeps the hero's face consistent
-        const r = await api("/api/image", { body, timeoutMs: 45000 });
+        const r = await withRetry(() => api("/api/image", { body, timeoutMs: 45000 }));
         return { src: r.image, source: "proxy" };
       } catch (e) {
         console.warn(`[image] scene ${i + 1} attempt ${a + 1} failed:`, e.code, e.message);
@@ -36,6 +36,16 @@ export async function sceneImage(story, i, hero, token) {
     }
   }
   return { src: paintScene(story, i), source: "painted" };
+}
+
+// Wait and retry when MiniMax says "too many requests this minute".
+async function withRetry(fn) {
+  for (let k = 1; ; k++) {
+    try { return await fn(); } catch (e) {
+      if (!(e.status === 429 && e.code !== "story_limit") || k >= 5) throw e;
+      await new Promise((r) => setTimeout(r, 5000 * k + Math.random() * 1500));
+    }
+  }
 }
 
 // ─────────────── Emergency offline art (soft pastel canvas scene) ───────────────
