@@ -1,0 +1,32 @@
+name = "story-magic-proxy"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+# KV namespace for quotas + per-story state.
+# Create it once:  npx wrangler kv namespace create QUOTA   → paste the id below.
+[[kv_namespaces]]
+binding = "QUOTA"
+id = "13162e104e5c4e2fa839d9ef70f82992"
+
+[vars]
+# Your GitHub Pages origin(s), comma separated. localhost is always allowed for development.
+ALLOWED_ORIGINS = "https://khadejaahmedkz.github.io"
+
+# Spending guard-rails (a story ≈ $1.30 with the settings below)
+DAILY_LIMIT_PER_DEVICE = "6"     # stories per child-device per day
+DAILY_LIMIT_TOTAL = "12"         # stories per day for the whole site
+MONTHLY_LIMIT_TOTAL = "180"      # 6 a day for a whole month (~$236 max)
+TZ_OFFSET_HOURS = "4"            # day resets at midnight UAE time
+
+# Models
+TEXT_MODEL = "MiniMax-M3.1-Flash"
+VIDEO_MODEL = "MiniMax-Hailuo-2.3-Fast"   # or "MiniMax-Hailuo-2.3" (slower, a bit sharper)
+VIDEO_RESOLUTION = "768P"                 # "1080P" = sharper, $0.33/clip on Fast
+TTS_MODEL = "speech-2.8-hd"
+
+MOCK = "0"
+
+# Secrets (never in this file):
+#   npx wrangler secret put MINIMAX_API_KEY
+#   npx wrangler secret put TOKEN_SECRET        (any long random string)
+#   npx wrangler secret put ACCESS_CODE         (optional "family code")
