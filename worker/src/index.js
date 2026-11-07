@@ -20,7 +20,7 @@ const STYLE =
   "Soft 3D animated children's film, Pixar style render, adorable rounded characters, big expressive eyes, " +
   "warm golden lighting, pastel colors, smooth gentle motion, calm lighting, no flashing, no strobe, no text.";
 const SAFETY =
-  "Calm steady lighting, no flashing, no strobe, no flickering, no fast cuts, no sudden brightness changes, slow gentle motion.";
+  "Calm steady lighting, no flashing, no strobe, no flickering, no fast cuts, no sudden brightness changes, slow gentle motion. Full-frame 16:9 picture, no letterbox, no black bars.";
 
 const VOICES = {
   storyteller: "English_CaptivatingStoryteller",
@@ -114,6 +114,7 @@ Their favorite thing: "${favorite || "stars"}" — include it in the story.
 Rules:
 - Exactly 6 scenes. Each scene "text" = exactly 2 short sentences, 22 to 28 words total, simple words for a ${age}-year-old.
 - Kind and calm. No danger, no villains, nothing scary. A small problem solved with kindness or courage.
+- Never guess whether ${name} is a boy or a girl: do NOT use he/she/him/her/his/hers for ${name}. Use the name "${name}" (or "they") instead. The sidekick may have pronouns.
 - Scene 6 ends with a small, warm lesson.
 - "character": ONE fixed visual description of ${name} for an animator: approximate age, hair, skin tone, outfit with colors, plus one cute sidekick (species + colors). 25-40 words. It never changes between scenes.
 - "setting": the main place of the story with colors and light, 10-20 words.
