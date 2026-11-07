@@ -106,7 +106,9 @@ export function templateStory({ name, age, favorite, idea }) {
   const friend = pick(FRIENDS);
   const lesson = pick(LESSONS);
   const rawIdea = idea && idea.trim() ? idea.trim().replace(/[.!?]+$/, "") : "";
-  const ideaBit = rawIdea ? `an adventure about ${rawIdea.charAt(0).toLowerCase() + rawIdea.slice(1)}` : `a surprise adventure with ${fav}`;
+  const isWorry = /^(i|i'm|im|my|me)\b/i.test(rawIdea);
+  const ideaBit = isWorry ? "a brave little adventure, one small step at a time"
+    : rawIdea ? `an adventure about ${rawIdea.charAt(0).toLowerCase() + rawIdea.slice(1)}` : `a surprise adventure with ${fav}`;
   const cams = [...CAMERA].sort(() => Math.random() - 0.5);
   const cam = (i) => cams[i % cams.length];
 

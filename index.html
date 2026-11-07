@@ -3,110 +3,133 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Story Magic 3D · Rafeeq</title>
-  <meta name="description" content="Type or say a story idea and get a brand-new, gentle 3D animated story movie made just for you." />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>" />
+  <title>Rafeeq · Hero stories</title>
+  <meta name="description" content="Tell Rafeeq a worry or a story idea and get a gentle 3D story movie where you are the hero." />
+  <link rel="icon" type="image/png" href="assets/rafeeq-mark.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-  <div class="sky" aria-hidden="true">
-    <div class="cloud c1"></div><div class="cloud c2"></div><div class="cloud c3"></div><div class="cloud c4"></div>
-  </div>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="buddy" viewBox="0 0 96 96">
+        <path d="M48 10l11 23.5 25.5 3.2-18.8 17.6 5 25.3L48 67 25.3 79.6l5-25.3-18.8-17.6L37 33.5z" fill="#E8B04B" stroke="#E8B04B" stroke-width="9" stroke-linejoin="round"/>
+        <circle cx="39.5" cy="44" r="3.6" fill="#2F3A56"/><circle cx="56.5" cy="44" r="3.6" fill="#2F3A56"/>
+        <path d="M40 53.5c2.2 2.6 5 3.8 8 3.8s5.8-1.2 8-3.8" fill="none" stroke="#2F3A56" stroke-width="3" stroke-linecap="round"/>
+      </symbol>
+      <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+      <symbol id="i-mic" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"/></g></symbol>
+      <symbol id="i-play" viewBox="0 0 24 24"><path d="M8.5 5.5v13l11-6.5z" fill="currentColor"/></symbol>
+      <symbol id="i-pause" viewBox="0 0 24 24"><g fill="currentColor"><rect x="6.5" y="5.5" width="4" height="13" rx="1.5"/><rect x="13.5" y="5.5" width="4" height="13" rx="1.5"/></g></symbol>
+      <symbol id="i-replay" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v5h5"/></g></symbol>
+      <symbol id="i-music" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></g></symbol>
+      <symbol id="i-music-off" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/><path d="M3 3l18 18"/></g></symbol>
+      <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M5 19h14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    </defs>
+  </svg>
 
-  <!-- ═════════════ 1. INPUT ═════════════ -->
+  <!-- ═════════════ 1. TELL RAFEEQ ═════════════ -->
   <main id="screen-input" class="screen active">
-    <header class="hero">
-      <div class="logo">📖✨</div>
-      <h1>Story Magic <span>3D</span></h1>
-      <p>Tell me your idea, and I'll make a cozy 3D movie just for you!</p>
-    </header>
-
-    <form id="story-form" class="panel" autocomplete="off">
-      <div class="row two">
-        <label class="field">
-          <span>😊 Your name</span>
-          <input id="f-name" maxlength="20" placeholder="Like Khadeja" required />
-        </label>
-        <label class="field">
-          <span>🎂 Age: <b id="age-out">6</b></span>
-          <input id="f-age" type="range" min="3" max="12" value="6" />
-        </label>
-      </div>
-
-      <div class="field">
-        <span>🌟 I am a…</span>
-        <div class="kind" id="kind" role="radiogroup">
-          <button type="button" role="radio" aria-checked="false" data-kind="girl">👧 Girl</button>
-          <button type="button" role="radio" aria-checked="false" data-kind="boy">👦 Boy</button>
-          <button type="button" role="radio" aria-checked="true" data-kind="">✨ Surprise me</button>
+    <div class="phone">
+      <header class="topbar">
+        <div class="brand">
+          <img src="assets/rafeeq-mark.png" alt="" />
+          <span class="brand-en">Rafeeq</span>
+          <span class="brand-ar" lang="ar" dir="rtl">رفيق</span>
         </div>
+      </header>
+
+      <h1 class="page-title">Tell Rafeeq</h1>
+
+      <div class="buddy-row">
+        <svg class="buddy" width="72" height="72" aria-hidden="true"><use href="#buddy"/></svg>
+        <p class="bubble">What is on your mind today? I will make a story movie where you are the hero.</p>
       </div>
 
-      <label class="field">
-        <span>💜 Your favorite thing</span>
-        <input id="f-fav" maxlength="40" placeholder="Dinosaurs, rainbows, cats, space…" />
-      </label>
+      <form id="story-form" autocomplete="off">
+        <label class="label" for="f-idea">Your worry or story idea</label>
+        <textarea id="f-idea" maxlength="300" placeholder="Type it here"></textarea>
+        <small id="mic-hint" class="hint" aria-live="polite"></small>
 
-      <label class="field">
-        <span>💭 Your story idea</span>
-        <div class="idea-wrap">
-          <textarea id="f-idea" rows="3" maxlength="300" placeholder="A bunny who wants to visit the moon…"></textarea>
-          <button type="button" id="mic" class="mic" aria-label="Say your idea">🎤</button>
-        </div>
-        <small id="mic-hint" class="hint"></small>
-      </label>
+        <div class="label" id="chips-label">Or pick one to start</div>
+        <div class="chips" id="chips" role="group" aria-labelledby="chips-label"></div>
 
-      <div class="chips" id="chips" aria-label="Idea ideas"></div>
+        <button type="button" id="mic" class="btn btn-mint" aria-pressed="false">
+          <svg aria-hidden="true"><use href="#i-mic"/></svg><span id="mic-label">Say it out loud</span>
+        </button>
 
-      <div class="field">
-        <span>🎙️ Pick your storyteller</span>
-        <div class="voices" id="voices" role="radiogroup"></div>
-      </div>
+        <div class="label" id="voices-label">Who reads your story?</div>
+        <div class="voices" id="voices" role="radiogroup" aria-labelledby="voices-label"></div>
 
-      <p class="friendly" id="friendly" hidden></p>
-      <button id="go" class="big-btn" type="submit">✨ Make My Story! ✨</button>
-      <p class="fine" id="account-line"></p>
-    </form>
+        <p class="friendly" id="friendly" role="status" hidden></p>
+        <button id="go" class="btn btn-primary" type="submit">
+          <span>Make my story</span><svg aria-hidden="true"><use href="#i-arrow"/></svg>
+        </button>
+        <p class="fine" id="account-line"></p>
+      </form>
+    </div>
   </main>
 
-  <!-- ═════════════ 2. LOADING ═════════════ -->
+  <!-- ═════════════ 2. MAKING THE STORY ═════════════ -->
   <section id="screen-loading" class="screen" aria-live="polite">
-    <div class="panel loading">
-      <div class="magic-book" aria-hidden="true">
-        <div class="book">📖</div>
-        <div class="orbit"><span>⭐</span><span>🌙</span><span>☁️</span></div>
+    <div class="phone">
+      <header class="topbar">
+        <button class="icon-btn" id="cancel" type="button" aria-label="Start over"><svg aria-hidden="true"><use href="#i-back"/></svg></button>
+        <h1 class="page-title">Making your story</h1>
+      </header>
+
+      <div class="panel-card load-card">
+        <svg class="buddy buddy-float" width="104" height="104" aria-hidden="true"><use href="#buddy"/></svg>
+        <h2 id="load-title">Making your movie…</h2>
+        <div class="bar"><div id="bar-fill"></div></div>
+        <p class="eta" id="eta">Getting the magic ready…</p>
       </div>
-      <h2 id="load-title">Making your movie…</h2>
-      <div class="bar"><div id="bar-fill"></div></div>
-      <p class="eta" id="eta">Getting the magic ready…</p>
+
       <ul class="steps" id="steps"></ul>
       <div class="scene-chips" id="scene-chips"></div>
       <p class="fun" id="fun-fact"></p>
-      <button class="ghost-btn" id="cancel">↩︎ Start over</button>
     </div>
   </section>
 
-  <!-- ═════════════ 3. PLAYER ═════════════ -->
+  <!-- ═════════════ 3. YOUR STORY ═════════════ -->
   <section id="screen-player" class="screen">
-    <div class="theater">
+    <div class="wide">
+      <header class="topbar">
+        <button class="icon-btn" id="c-back" type="button" aria-label="Back to Tell Rafeeq"><svg aria-hidden="true"><use href="#i-back"/></svg></button>
+        <h1 class="page-title">Your story</h1>
+      </header>
+
+      <div class="title-card">
+        <svg class="buddy" width="64" height="64" aria-hidden="true"><use href="#buddy"/></svg>
+        <div>
+          <div class="small">Made just for you</div>
+          <div class="movie-title" id="movie-title"></div>
+        </div>
+      </div>
+
       <div class="stage" id="stage">
         <div class="layer"></div>
         <div class="layer"></div>
         <div class="captions" id="captions"></div>
-        <button class="big-play" id="big-play" aria-label="Play the movie">▶️<span>Play my movie</span></button>
+        <button class="big-play" id="big-play" type="button" aria-label="Play the movie"><svg aria-hidden="true"><use href="#i-play"/></svg><span>Play my movie</span></button>
       </div>
+
       <div class="controls">
-        <button id="c-play" aria-label="Play">▶️</button>
-        <button id="c-replay" aria-label="Replay">🔁</button>
-        <button id="c-music" aria-label="Music on or off">🎵</button>
+        <button id="c-play" type="button" aria-label="Play"><svg aria-hidden="true"><use href="#i-play"/></svg></button>
+        <button id="c-replay" type="button" aria-label="Watch from the start"><svg aria-hidden="true"><use href="#i-replay"/></svg></button>
+        <button id="c-music" type="button" aria-label="Music on or off"><svg aria-hidden="true"><use href="#i-music"/></svg></button>
         <div class="dots" id="dots"></div>
-        <button id="c-download" class="pill" aria-label="Download my movie">⬇️ <span>Download my movie</span></button>
-        <button id="c-new" class="pill" aria-label="New story">✨ <span>New story</span></button>
+        <button id="c-download" class="pill" type="button" aria-label="Download my movie"><svg aria-hidden="true"><use href="#i-download"/></svg><span>Download my movie</span></button>
       </div>
       <p class="note" id="player-note"></p>
+
+      <div class="two-btns">
+        <button id="c-new" class="btn btn-white" type="button">New story</button>
+        <button id="c-better" class="btn btn-primary" type="button">I feel better</button>
+      </div>
     </div>
   </section>
 

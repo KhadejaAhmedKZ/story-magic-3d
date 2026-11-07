@@ -108,7 +108,7 @@ Testing switches: `?wait=20` changes the 2-minute cutoff; `?voice=kokoro` / `?vo
 
 - **Lively clips:** each scene asks Hailuo for one playful, clearly visible action with both hero and sidekick moving the whole clip (hopping, twirling, waving, splashing, a happy dance) and big expressive faces. Clips play at 0.85× or faster, so there's no sleepy slow motion.
 - **Animated title and end cards:** the hero bobs in a bubble, letters pop in one by one, and stars, bubbles and balloons drift up slowly.
-- **Girl / boy / surprise me** picker so the hero looks the way the child wants; with "surprise me" the story uses the child's name instead of he/she.
+- **Rafeeq look:** the page uses the Rafeeq design (sand background, purple buttons, star buddy, Baloo Bhaijaan 2 + Poppins). The child only types or says a worry or story idea, or taps a starter; no name, age or girl/boy is asked. The hero is always "Little Star", and the Worker never guesses he/she.
 - **Rate limits:** if MiniMax says "too many requests this minute", the clip or image waits and retries (6 s, 12 s, …) instead of falling back to a still.
 
 ## Epilepsy safety

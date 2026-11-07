@@ -94,7 +94,7 @@ function drawCover(g, el, W, H, scale = 1, tx = 0, ty = 0, domW = W) {
 function drawCard(g, card, W, H) {
   if (!card) return;
   const grad = g.createLinearGradient(0, 0, W, H);
-  grad.addColorStop(0, "#ffd6e8"); grad.addColorStop(0.5, "#e5d9ff"); grad.addColorStop(1, "#cfe9ff");
+  grad.addColorStop(0, "#F4ECDF"); grad.addColorStop(0.5, "#E4DAF7"); grad.addColorStop(1, "#D6EBF2");
   g.fillStyle = grad; g.fillRect(0, 0, W, H);
   const bgImg = card._bgImg || (card._bgImg = (() => {
     const m = /url\("(.+)"\)/.exec(card.style.getPropertyValue("--bg") || "");
@@ -115,7 +115,7 @@ function drawCard(g, card, W, H) {
     const r = R(el), cs = getComputedStyle(el);
     g.save();
     g.globalAlpha *= alpha(el);
-    g.font = `${weight} ${parseFloat(cs.fontSize) * k}px 'Baloo 2', system-ui`;
+    g.font = `${weight} ${parseFloat(cs.fontSize) * k}px 'Baloo Bhaijaan 2', system-ui`;
     g.fillStyle = color || cs.color;
     g.textBaseline = "middle"; g.textAlign = "center";
     g.fillText(el.textContent, r.x + r.w / 2, r.y + r.h / 2);

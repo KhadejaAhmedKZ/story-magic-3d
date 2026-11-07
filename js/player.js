@@ -224,7 +224,7 @@ export class Player {
     });
     h1.setAttribute("aria-label", text);
     const p = d.querySelector("p");
-    p.textContent = title ? `A story made just for ${this.movie.name}` : `Goodnight, ${this.movie.name}!`;
+    p.textContent = title ? "A story made just for you" : "Goodnight, little hero!";
     p.style.animationDelay = `${0.9 + text.length * 0.05}s`;
     return d;
   }
@@ -368,9 +368,10 @@ export class Player {
     [...this.els.dots.children].forEach((b, k) => b.classList.toggle("on", k === i));
   }
   updateButtons() {
-    this.els.playBtn.textContent = this.playing ? "⏸️" : "▶️";
+    this.els.playBtn.innerHTML = `<svg aria-hidden="true"><use href="#${this.playing ? "i-pause" : "i-play"}"/></svg>`;
     this.els.playBtn.setAttribute("aria-label", this.playing ? "Pause" : "Play");
-    this.els.musicBtn.textContent = this.musicOn === false ? "🔇" : "🎵";
+    this.els.musicBtn.innerHTML = `<svg aria-hidden="true"><use href="#${this.musicOn === false ? "i-music-off" : "i-music"}"/></svg>`;
+    this.els.musicBtn.setAttribute("aria-label", this.musicOn === false ? "Turn music on" : "Turn music off");
   }
 }
 

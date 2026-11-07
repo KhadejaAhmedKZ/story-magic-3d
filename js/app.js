@@ -13,42 +13,47 @@ const state = { voice: VOICES[0], ctx: null, player: null, movie: null, runId: 0
 window.__storyMagic = state; // handy for debugging / measuring
 
 // ───────────────────────── input screen ─────────────────────────
-const IDEAS = [
-  "🐰 A bunny who visits the moon", "🦕 A friendly dinosaur picnic", "🌈 Painting a rainbow bridge",
-  "🐳 Swimming with a gentle whale", "🚀 A cozy trip to the stars", "🧁 A magical cupcake bakery",
-  "🐢 Helping a tiny turtle home", "🏰 A castle made of clouds", "🦋 A butterfly birthday party",
-  "🐧 A penguin who learns to slide", "🌻 A garden that sings softly", "🎈 Floating on balloons",
+// Starter prompts: the child can tap one, then edit it, or type their own.
+const STARTERS = [
+  ["At school", "I am scared that if I have a seizure at school, my friends will laugh at me."],
+  ["At bedtime", "I do not like sleeping alone because I might have a seizure at night."],
+  ["A big test", "I am worried that I will not pass my big test."],
+  ["Seeing the doctor", "I feel nervous about going to the hospital for my check-up."],
+  ["Just for fun", "A bunny who wants to visit the moon."],
 ];
 
 function initForm() {
-  $("#f-age").addEventListener("input", (e) => ($("#age-out").textContent = e.target.value));
   const chips = $("#chips");
-  [...IDEAS].sort(() => Math.random() - 0.5).slice(0, 6).forEach((t) => {
+  STARTERS.forEach(([label, text]) => {
     const b = document.createElement("button");
-    b.type = "button"; b.className = "chip"; b.textContent = t;
-    b.onclick = () => { $("#f-idea").value = t.replace(/^\S+\s/, ""); $("#f-idea").focus(); };
+    b.type = "button"; b.className = "chip"; b.textContent = label;
+    b.setAttribute("aria-pressed", "false");
+    b.onclick = () => {
+      $("#f-idea").value = text;
+      $("#friendly").hidden = true;
+      chips.querySelectorAll(".chip").forEach((c) => c.setAttribute("aria-pressed", c === b ? "true" : "false"));
+      $("#f-idea").focus();
+    };
     chips.appendChild(b);
+  });
+  // typing your own words un-highlights the starter
+  $("#f-idea").addEventListener("input", () => {
+    $("#friendly").hidden = true;
+    chips.querySelectorAll(".chip").forEach((c) => c.setAttribute("aria-pressed", "false"));
   });
 
   const vbox = $("#voices");
   VOICES.forEach((v, i) => {
-    const d = document.createElement("div");
-    d.className = "voice"; d.setAttribute("role", "radio"); d.tabIndex = 0;
+    const d = document.createElement("button");
+    d.type = "button"; d.className = "voice"; d.setAttribute("role", "radio");
     d.setAttribute("aria-checked", i === 0 ? "true" : "false");
     d.textContent = v.label;
-    const choose = () => {
+    d.onclick = () => {
       state.voice = v;
       [...vbox.children].forEach((c) => c.setAttribute("aria-checked", c === d ? "true" : "false"));
     };
-    d.onclick = choose;
-    d.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); choose(); } };
     vbox.appendChild(d);
   });
-
-  const kind = $("#kind");
-  kind.querySelectorAll("button").forEach((b) => (b.onclick = () => {
-    kind.querySelectorAll("button").forEach((x) => x.setAttribute("aria-checked", x === b ? "true" : "false"));
-  }));
 
   initMic();
   $("#story-form").addEventListener("submit", onSubmit);
@@ -57,21 +62,28 @@ function initForm() {
 
 function initMic() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const mic = $("#mic"), hint = $("#mic-hint");
-  if (!SR) { mic.onclick = () => toast("🎤 This browser can't listen yet — typing works too!"); return; }
-  let rec = null;
+  const mic = $("#mic"), hint = $("#mic-hint"), label = $("#mic-label");
+  if (!SR) { mic.onclick = () => toast("This browser can't listen yet. Typing works too!"); return; }
+  let rec = null, heard = false;
+  const setListening = (on) => {
+    mic.classList.toggle("listening", on);
+    mic.setAttribute("aria-pressed", on ? "true" : "false");
+    label.textContent = on ? "I am listening..." : "Say it out loud";
+  };
   mic.onclick = () => {
     if (rec) { rec.stop(); return; }
     rec = new SR();
     rec.lang = "en-US"; rec.interimResults = true; rec.continuous = false;
+    heard = false;
     const before = $("#f-idea").value.trim();
     rec.onresult = (e) => {
+      heard = true;
       const t = [...e.results].map((r) => r[0].transcript).join(" ");
       $("#f-idea").value = (before ? before + " " : "") + t;
     };
-    rec.onstart = () => { mic.classList.add("listening"); hint.textContent = "👂 I'm listening… tell me your idea!"; };
-    rec.onerror = (e) => { hint.textContent = e.error === "not-allowed" ? "🎤 Ask a grown-up to allow the microphone." : "🎤 I didn't catch that — try again?"; };
-    rec.onend = () => { mic.classList.remove("listening"); rec = null; if (hint.textContent.startsWith("👂")) hint.textContent = "✨ Got it!"; };
+    rec.onstart = () => { setListening(true); hint.textContent = "Tell me what is on your mind."; };
+    rec.onerror = (e) => { hint.textContent = e.error === "not-allowed" ? "Ask a grown-up to allow the microphone." : "I didn't catch that. Try again?"; };
+    rec.onend = () => { setListening(false); rec = null; if (heard) hint.textContent = "Got it!"; };
     rec.start();
   };
 }
@@ -79,8 +91,8 @@ function initMic() {
 async function checkMagic() {
   state.online = await apiHealthy();
   $("#account-line").textContent = state.online
-    ? "🎬 3D movie magic is ready · about 2 minutes per movie"
-    : "🌙 The 3D movie studio is resting — you'll get a picture story with a gentle voice.";
+    ? "Your 3D story movie takes about 2 minutes."
+    : "The 3D movie studio is resting. You will get a picture story with a gentle voice.";
   if (!state.online) warmUpVoice(); // the offline voice needs its model
 }
 
@@ -93,36 +105,40 @@ function ensureCtx() {
 
 function onSubmit(e) {
   e.preventDefault();
-  const input = {
-    name: cleanName($("#f-name").value) || "Little Star",
-    age: +$("#f-age").value,
-    favorite: $("#f-fav").value.trim().slice(0, 40),
-    idea: $("#f-idea").value.trim().slice(0, 300),
-    kind: $("#kind [aria-checked=true]")?.dataset.kind || "",
-  };
+  const idea = $("#f-idea").value.trim().slice(0, 300);
+  if (!idea) {
+    friendly("Tell me a worry or a story idea first, or tap one of the starters.");
+    $("#f-idea").focus();
+    return;
+  }
+  $("#friendly").hidden = true;
+  // No name, age or gender is asked: the hero is always "Little Star" and the Worker
+  // never guesses he/she when no gender is given.
+  const input = { name: HERO_NAME, age: HERO_AGE, favorite: "", idea, kind: "" };
   ensureCtx(); // created inside the click → audio is allowed later
   setOffline(!state.online);
   generate(input);
 }
 
-function cleanName(s) { return s.replace(/[<>{}"`]/g, "").trim().slice(0, 20); }
+const HERO_NAME = "Little Star";
+const HERO_AGE = 7;
 
 const STEP_DEFS = [
-  ["story", "✍️", "Writing your story"],
-  ["hero", "🎨", "Designing your 3D hero"],
-  ["scenes", "🖼️", "Setting up the scenes"],
-  ["video", "🎬", "Animating the scenes"],
-  ["voice", "🎙️", "Recording the storyteller"],
-  ["music", "🎵", "Composing a lullaby"],
+  ["story", "1", "Writing your story"],
+  ["hero", "2", "Designing your 3D hero"],
+  ["scenes", "3", "Setting up the scenes"],
+  ["video", "4", "Animating the scenes"],
+  ["voice", "5", "Recording the storyteller"],
+  ["music", "6", "Composing a lullaby"],
 ];
 const FUN = [
-  "Did you know? Owls can turn their heads almost all the way around! 🦉",
-  "Fun fact: a group of baby bunnies is called a fluffle! 🐰",
-  "Did you know? Sea otters hold hands when they sleep! 🦦",
-  "Fun fact: butterflies taste with their feet! 🦋",
-  "Did you know? Clouds can weigh as much as 100 elephants — but they float! ☁️",
-  "Fun fact: penguins give pebbles to friends they like! 🐧",
-  "Did you know? A snail can sleep for three whole years! 🐌",
+  "Did you know? Owls can turn their heads almost all the way around!",
+  "Fun fact: a group of baby bunnies is called a fluffle!",
+  "Did you know? Sea otters hold hands when they sleep!",
+  "Fun fact: butterflies taste with their feet!",
+  "Did you know? Clouds can weigh as much as 100 elephants — but they float!",
+  "Fun fact: penguins give pebbles to friends they like!",
+  "Did you know? A snail can sleep for three whole years!",
 ];
 
 async function generate(input) {
@@ -147,16 +163,16 @@ async function generate(input) {
   const setStep = (k, cls, text) => {
     const li = stepEl[k]; li.className = cls;
     if (text) li.querySelector(".tx").textContent = text;
-    if (cls === "done") li.querySelector(".st").textContent = "✅";
+    if (cls === "done") li.querySelector(".st").textContent = "\u2713";
   };
   const chips = $("#scene-chips"); chips.innerHTML = "";
   const chipEl = [];
   for (let i = 0; i < N; i++) {
     const d = document.createElement("div");
-    d.innerHTML = `<b>⏳</b>Scene ${i + 1}`;
+    d.innerHTML = `<b>Waiting</b>Scene ${i + 1}`;
     chips.appendChild(d); chipEl.push(d);
   }
-  const chip = (i, emo, cls) => { chipEl[i].querySelector("b").textContent = emo; chipEl[i].className = cls || ""; };
+  const chip = (i, word, cls) => { chipEl[i].querySelector("b").textContent = word; chipEl[i].className = cls || ""; };
   let funI = Math.floor(Math.random() * FUN.length);
   $("#fun-fact").textContent = FUN[funI];
   const funTimer = setInterval(() => { $("#fun-fact").textContent = FUN[++funI % FUN.length]; }, 9000);
@@ -173,8 +189,8 @@ async function generate(input) {
     $("#bar-fill").style.width = `${Math.max(3, Math.min(100, pct))}%`;
     const left = Math.max(0, Math.round(CONFIG.maxWaitSeconds - elapsed()));
     $("#eta").textContent = prog.vids === N
-      ? "⏱️ Almost ready…"
-      : `⏱️ About ${left > 60 ? `${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}` : `${Math.max(5, left)} seconds`} left — real 3D animation is on its way!`;
+      ? "Almost ready…"
+      : `About ${left > 60 ? `${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}` : `${Math.max(5, left)} seconds`} left — real 3D animation is on its way!`;
   };
   const etaTimer = setInterval(tick, 500);
   tick();
@@ -192,9 +208,9 @@ async function generate(input) {
       cleanup();
       if (!alive()) return;
       show("screen-input");
-      if (e.code === "daily_limit") return friendly("🌙 You made lots of stories today! Your storyteller is resting — come back tomorrow for more magic.");
-      if (e.code === "budget_limit") return friendly("🌙 The movie studio is resting today. Come back tomorrow for a brand-new movie!");
-      if (e.code === "bad_code") return friendly("🔑 Grown-ups: this site needs its family code. See the README.");
+      if (e.code === "daily_limit") return friendly("You made lots of stories today! Your storyteller is resting — come back tomorrow for more magic.");
+      if (e.code === "budget_limit") return friendly("The movie studio is resting today. Come back tomorrow for a brand-new movie!");
+      if (e.code === "bad_code") return friendly("Grown-ups: this site needs its family code. See the README.");
       throw e;
     }
     if (!alive()) return;
@@ -207,9 +223,9 @@ async function generate(input) {
 
     // 2. VOICE — runs alongside everything else
     const texts = [
-      `${story.title}. A story made just for ${input.name}.`,
+      `${story.title}. A story made just for you.`,
       ...story.scenes.map((s) => s.text),
-      `The end. Goodnight, ${input.name}. Sweet dreams.`,
+      `The end. Goodnight, little hero. Sweet dreams.`,
     ];
     if (!token || CONFIG.voiceProvider === "kokoro") warmUpVoice();
     const voiceJob = (async () => {
@@ -243,21 +259,21 @@ async function generate(input) {
     const clips = new Array(N).fill(null);
     let animDone = 0;
     await Promise.all(Array.from({ length: N }, async (_, i) => {
-      chip(i, "🎨", "work");
+      chip(i, "Drawing", "work");
       const tI = performance.now();
       stills[i] = await sceneImage(story, i, hero, token);
       const rec = { scene: i + 1, image: secs(tI), imageSource: stills[i].source };
       timings.scenes[i] = rec;
       prog.imgs++;
       setStep("scenes", prog.imgs === N ? "done" : "doing", prog.imgs === N ? "All scenes set up" : `Setting up the scenes… ${prog.imgs} of ${N}`);
-      chip(i, "🎬", "work");
+      chip(i, "Animating", "work");
       const tV = performance.now();
       clipPromises[i] = sceneVideo(i, stills[i], token).then((c) => {
         rec.video = secs(tV); rec.videoDoneAt = Math.round(elapsed()); rec.clip = c ? "video" : "still";
         clips[i] = c;
         prog.vids++;
         if (c) animDone++;
-        chip(i, c ? "✅" : "🖼️", "done");
+        chip(i, c ? "Ready" : "Picture", "done");
         setStep("video", prog.vids === N ? "done" : "doing",
           prog.vids === N ? (animDone ? "All scenes animated" : "Gentle picture scenes") : `Animating… ${prog.vids} of ${N} scenes done`);
         return c;
@@ -306,7 +322,7 @@ async function generate(input) {
     cleanup();
     if (!alive()) return;
     show("screen-input");
-    friendly("🌧️ Oops, the story magic got sleepy. Let's try again!");
+    friendly("Oops, the story magic got sleepy. Let's try again!");
   }
 }
 
@@ -359,18 +375,22 @@ function openPlayer(movie) {
   $("#c-play").onclick = () => { big.classList.add("hide"); p.togglePause(); };
   $("#c-replay").onclick = () => { big.classList.add("hide"); p.replay(); };
   $("#c-music").onclick = () => p.toggleMusic();
-  $("#c-new").onclick = () => { p.stop(); state.runId++; show("screen-input"); };
+  $("#movie-title").textContent = movie.title;
+  const leave = () => { p.stop(); state.runId++; show("screen-input"); };
+  $("#c-new").onclick = leave;
+  $("#c-back").onclick = leave;
+  $("#c-better").onclick = () => { leave(); toast("I am so glad. Rafeeq is always here when you need a story."); };
   p.on("ended", () => { if (!state.recording) { big.classList.remove("hide"); big.querySelector("span").textContent = "Watch again"; } });
 
   const note = () => {
     const scenes = movie.items.filter((i) => i.kind === "scene");
     const vids = scenes.filter((i) => i.clip.type === "video").length;
     const parts = [];
-    if (vids === scenes.length) parts.push(`🎬 Brand-new 3D animation, made just now for ${movie.name}.`);
-    else if (movie.pending?.() > 0) parts.push(`🎬 ${vids} of ${scenes.length} scenes animated — the rest are finishing and pop in before they play.`);
-    else if (vids > 0) parts.push(`🎬 ${vids} of ${scenes.length} scenes animated, the rest are gentle 3D pictures.`);
-    else parts.push("🖼️ Today's movie uses gentle picture scenes.");
-    if (movie.storiesLeft != null) parts.push(movie.storiesLeft > 0 ? `✨ ${movie.storiesLeft} more ${movie.storiesLeft === 1 ? "story" : "stories"} today.` : "🌙 That was today's last story.");
+    if (vids === scenes.length) parts.push("Brand-new 3D animation, made just now for you.");
+    else if (movie.pending?.() > 0) parts.push(`${vids} of ${scenes.length} scenes animated — the rest are finishing and pop in before they play.`);
+    else if (vids > 0) parts.push(`${vids} of ${scenes.length} scenes animated, the rest are gentle 3D pictures.`);
+    else parts.push("Today's movie uses gentle picture scenes.");
+    if (movie.storiesLeft != null) parts.push(movie.storiesLeft > 0 ? `${movie.storiesLeft} more ${movie.storiesLeft === 1 ? "story" : "stories"} today.` : "That was today's last story.");
     $("#player-note").textContent = parts.join(" ");
   };
   p.refreshNote = note;
@@ -380,7 +400,7 @@ function openPlayer(movie) {
   dl.onclick = async () => {
     const can = canRecord(movie);
     if (!can.ok) return toast(can.why);
-    if (can.speechOnly) toast("💡 The browser voice can't be saved — the movie will have music only.");
+    if (can.speechOnly) toast("The browser voice can't be saved — the movie will have music only.");
     big.classList.add("hide");
     state.recording = true;
     dl.disabled = true;
@@ -393,10 +413,10 @@ function openPlayer(movie) {
       a.href = URL.createObjectURL(blob);
       a.download = `${movie.title.replace(/[^\w\s-]/g, "").trim().replace(/\s+/g, "-") || "my-story"}.${ext}`;
       document.body.appendChild(a); a.click(); a.remove();
-      toast("🎉 Your movie is saved!");
+      toast("Your movie is saved!");
     } catch (e) {
       console.error(e);
-      toast("😴 Saving didn't work this time — you can still watch it here.");
+      toast("Saving didn't work this time — you can still watch it here.");
     } finally {
       state.recording = false;
       dl.disabled = false;
@@ -420,7 +440,6 @@ function friendly(msg) {
   const box = $("#friendly");
   box.textContent = msg;
   box.hidden = false;
-  toast(msg);
 }
 
 window.addEventListener("unhandledrejection", (e) => { console.warn("[unhandled]", e.reason); });

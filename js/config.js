@@ -28,11 +28,11 @@ export const CONFIG = {
 
 // Voice picker: proxy voice key (MiniMax) + Kokoro / browser fallbacks.
 export const VOICES = [
-  { id: "storyteller", label: "📖 Storyteller",   kokoro: "af_heart",   lang: "en-US", female: true },
-  { id: "mama",        label: "🌙 Calm Mama",     kokoro: "af_bella",   lang: "en-US", female: true },
-  { id: "soft",        label: "🌸 Soft Sister",   kokoro: "bf_emma",    lang: "en-GB", female: true },
-  { id: "papa",        label: "🧸 Gentle Papa",   kokoro: "am_michael", lang: "en-US", female: false },
-  { id: "grandpa",     label: "👴 Wise Grandpa",  kokoro: "bm_george",  lang: "en-GB", female: false },
+  { id: "storyteller", label: "Storyteller",   kokoro: "af_heart",   lang: "en-US", female: true },
+  { id: "mama",        label: "Calm Mama",     kokoro: "af_bella",   lang: "en-US", female: true },
+  { id: "soft",        label: "Soft Sister",   kokoro: "bf_emma",    lang: "en-GB", female: true },
+  { id: "papa",        label: "Gentle Papa",   kokoro: "am_michael", lang: "en-US", female: false },
+  { id: "grandpa",     label: "Wise Grandpa",  kokoro: "bm_george",  lang: "en-GB", female: false },
 ];
 
 // URL overrides (handy for local testing; never needed in production)
