@@ -17,10 +17,11 @@
 const API = "https://api.minimax.io";
 
 const STYLE =
-  "Cute stylized cartoon animation for young children, like a gentle preschool TV show: simple rounded shapes, " +
-  "smooth soft surfaces, big friendly cartoon eyes, tiny simple nose and mouth, soft pastel colors, warm soft light, " +
-  "playful bouncy cartoon movement, smooth natural motion, calm steady lighting, no flashing, no strobe, no text. " +
-  "Not realistic: no photorealistic skin, faces or hands. Only one child in the picture; every other character is a cute cartoon animal.";
+  "Cute 2D cartoon in a soft children's picture-book style, like the Rafeeq illustrations: flat soft pastel colors, " +
+  "gentle hand-drawn outlines, round chubby simple shapes, small simple faces with friendly dot-like eyes, rosy cheeks " +
+  "and a tiny smile, warm soft light, playful bouncy cartoon movement, smooth natural motion, calm steady lighting, " +
+  "no flashing, no strobe, no text. NOT 3D, NOT realistic, NOT a doll: no glossy plastic skin, no realistic eyes, " +
+  "teeth or hands. Only one child in the picture; every other character is a cute cartoon animal.";
 const SAFETY =
   "Calm steady lighting, no flashing, no strobe, no flickering, no fast cuts, no sudden brightness changes, smooth camera with no cuts. Full-frame 16:9 picture, no letterbox, no black bars.";
 
