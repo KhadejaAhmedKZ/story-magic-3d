@@ -53,7 +53,7 @@ export function validateStory(s, input) {
   const scenes = s.scenes.slice(0, CONFIG.scenes).map((sc, i) => {
     const text = String(sc.text || "").trim();
     const vp = String(sc.video_prompt || sc.videoPrompt || "").trim();
-    if (text.split(/\s+/).length < 10) throw new Error(`scene ${i + 1} text too short`);
+    if (text.split(/\s+/).length < 5) throw new Error(`scene ${i + 1} text too short`);
     if (!vp) throw new Error(`scene ${i + 1} missing video_prompt`);
     return { text, video_prompt: vp };
   });

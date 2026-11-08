@@ -85,6 +85,7 @@ async function story(req, env, cors) {
     favorite: clean(b.favorite, 40),
     idea: clean(b.idea, 300),
     kind: b.kind === "girl" || b.kind === "boy" ? b.kind : "",
+    look: clean(b.look, 300), // optional fixed description of the child, e.g. from the Rafeeq app's profile picture
   };
   let s;
   try {
@@ -108,22 +109,26 @@ async function story(req, env, cors) {
   return json({ story: s, token, left: perDevice - dCount - 1 }, 200, cors);
 }
 
-function storyPrompt({ name, age, favorite, idea, kind }) {
-  return `You write gentle, kind bedtime stories for young children.
+function storyPrompt({ name, age, favorite, idea, kind, look }) {
+  return `You write very short, gentle picture-book stories for young children.
 Write a NEW story for ${name}, age ${age}. ${name} is the hero.
-Story idea from the child: "${idea || "a surprise adventure"}".
-Their favorite thing: "${favorite || "stars"}" — include it in the story.
+What the child told us: "${idea || "a surprise adventure"}".
+If that is a worry, the story shows ${name} facing that worry gently, with help from a kind friend or grown-up, and feeling brave and happy at the end. Never mention illness details, hospitals or anything scary.
+Their favorite thing: "${favorite || "stars"}". Include it if it fits.
 
 Rules:
-- Exactly 6 scenes. Each scene "text" = exactly 2 short, fun sentences, 18 to 24 words total, simple words for a ${age}-year-old.
+- Exactly 6 scenes that tell ONE continuous story. Each scene starts right where the last one ended, in the same place unless the story moves on.
+- Each scene "text" = ONE short sentence, 8 to 14 words, with very simple words a 5-year-old knows. Start scenes 2 to 6 with a linking word like "Then", "So", "Next", "Soon" or "At last".
 - Kind and calm. No danger, no villains, nothing scary. A small problem solved with kindness or courage.
 ${kind
-    ? `- ${name} is a ${kind}. Use ${kind === "girl" ? "she/her" : "he/him"} for ${name}, and in "character" describe ${name} as a ${age}-year-old ${kind}.`
+    ? `- ${name} is a ${kind}. Use ${kind === "girl" ? "she/her" : "he/him"} for ${name}.`
     : `- Never guess whether ${name} is a boy or a girl: do NOT use he/she/him/her/his/hers for ${name}. Use the name "${name}" (or "they") instead. The sidekick may have pronouns.`}
-- Scene 6 ends with a small, warm lesson.
-- "character": ONE fixed visual description of ${name} for an animator: approximate age, hair, skin tone, outfit with colors, plus one cute sidekick (species + colors). 25-40 words. It never changes between scenes.
+- Scene 6 ends with a small, warm feeling of being brave or happy.
+${look
+    ? `- "character": start with exactly this description of ${name}: "${look}". Then add one cute sidekick (species + colors). It never changes between scenes.`
+    : `- "character": ONE fixed visual description of ${name} for an animator: approximate age, hair, skin tone, outfit with colors, plus one cute sidekick (species + colors). 25-40 words. It never changes between scenes.`}
 - "setting": the main place of the story with colors and light, 10-20 words.
-- "video_prompt" for each scene: ONE lively, fun, clearly visible action that keeps BOTH the hero and the sidekick moving for the whole clip (for example: hopping along, twirling, waving, giggling and bouncing, chasing bubbles or butterflies, splashing in puddles, sliding down a soft hill, a happy dance, a big hug), with big happy expressive faces, plus where they are. 15-30 words. Do NOT describe the hero's looks. No text, no signs, no flashing or blinking lights, no lightning, no fireworks, no explosions.
+- "video_prompt" for each scene: ONE gentle, clearly visible action that continues straight on from the previous scene's action and keeps BOTH the hero and the sidekick moving for the whole clip (for example: walking hand in hand, hopping along, waving, giggling, a happy dance, a big hug), with happy expressive faces, plus where they are. 15-30 words. Do NOT describe the hero's looks. No text, no signs, no flashing or blinking lights, no lightning, no fireworks, no explosions.
 - "mood": one or two words (e.g. "cozy", "dreamy", "playful").
 
 Reply with ONLY this JSON:
@@ -163,7 +168,7 @@ function validateStory(s, input) {
   if (!Array.isArray(s?.scenes) || s.scenes.length < 6) throw new Error("need 6 scenes");
   const scenes = s.scenes.slice(0, 6).map((x, i) => {
     const text = clean(x.text, 400), vp = clean(x.video_prompt || x.videoPrompt, 400);
-    if (text.split(/\s+/).length < 10 || !vp) throw new Error(`bad scene ${i + 1}`);
+    if (text.split(/\s+/).length < 5 || !vp) throw new Error(`bad scene ${i + 1}`);
     return { text, video_prompt: vp };
   });
   const character = clean(s.character, 400);

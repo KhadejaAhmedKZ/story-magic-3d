@@ -39,10 +39,10 @@ export class Player {
     this.buildDots();
     this.items.forEach((it) => {
       const narr = it.narration?.duration || 0;
-      const clip = it.clipDuration || 0;
-      const min = it.kind === "title" ? CONFIG.titleSeconds : it.kind === "end" ? CONFIG.endSeconds : 6;
-      // scene timing = max(clip length, narration length + breathing room)
-      it.duration = Math.max(min, clip, narr + 1.8);
+      const min = it.kind === "title" ? CONFIG.titleSeconds : it.kind === "end" ? CONFIG.endSeconds : CONFIG.sceneMinSeconds;
+      // scene timing follows the voice: the next scene fades in as soon as the voice ends
+      // (a clip shorter than the voice holds its last frame with a slow drift)
+      it.duration = Math.max(min, narr + CONFIG.afterVoiceSeconds);
     });
   }
 
@@ -129,7 +129,7 @@ export class Player {
     const it = this.items[i];
     if (it.kind === "scene") {
       // a clip may have arrived late: recompute timing = max(clip, narration + breathing room)
-      it.duration = Math.max(6, it.clipDuration || 0, (it.narration?.duration || 0) + 1.8);
+      it.duration = Math.max(CONFIG.sceneMinSeconds, (it.narration?.duration || 0) + CONFIG.afterVoiceSeconds);
     }
     const next = 1 - this.active;
     const incoming = this.layers()[next];
@@ -178,7 +178,7 @@ export class Player {
     this.active = next;
 
     this.itemStart = this.ctx.currentTime;
-    this.narrStart = this.itemStart + 0.9;
+    this.narrStart = this.itemStart + CONFIG.voiceLeadSeconds;
     this.narrDone = !it.narration;
     this.narrStarted = false;
     this.renderCaption(it);
@@ -285,8 +285,8 @@ export class Player {
       const elapsed = t - this.itemStart;
       this.emit("time", this.index, elapsed, it.duration);
       const nx = this.items[this.index + 1];
-      if (elapsed >= it.duration && this.narrDone && nx?.pending && t - (this.holdT ??= t) < 15) {
-        // the next scene's clip is still rendering: linger here a little (max 15 s) so it can play animated
+      if (elapsed >= it.duration && this.narrDone && nx?.pending && t - (this.holdT ??= t) < 4) {
+        // the next scene's clip is still rendering: linger here a little (max 4 s) so it can play animated
       } else if (elapsed >= it.duration && this.narrDone) {
         this.startItem(this.index + 1);
       } else if (elapsed >= it.duration + 25) {

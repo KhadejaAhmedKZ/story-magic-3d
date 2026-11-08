@@ -22,8 +22,11 @@ export const CONFIG = {
 
   scenes: 6,
   crossfadeMs: 1600,        // epilepsy-safe: always ≥ 1000 ms
-  titleSeconds: 5,
-  endSeconds: 6,
+  titleSeconds: 4,
+  endSeconds: 5,
+  sceneMinSeconds: 3.5,     // a scene never shows for less than this
+  afterVoiceSeconds: 0.5,   // tiny breath after the voice before the next scene fades in
+  voiceLeadSeconds: 0.3,    // the voice starts this soon after a scene appears
 };
 
 // Voice picker: proxy voice key (MiniMax) + Kokoro / browser fallbacks.
