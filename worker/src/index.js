@@ -17,9 +17,10 @@
 const API = "https://api.minimax.io";
 
 const STYLE =
-  "Soft 3D animated children's film, Pixar style render, adorable rounded characters, big expressive eyes, " +
-  "warm golden lighting, pastel colors, lively expressive character animation, playful bouncy cartoon movement, " +
-  "smooth natural motion, calm steady lighting, no flashing, no strobe, no text.";
+  "Cute stylized cartoon animation for young children, like a gentle preschool TV show: simple rounded shapes, " +
+  "smooth soft surfaces, big friendly cartoon eyes, tiny simple nose and mouth, soft pastel colors, warm soft light, " +
+  "playful bouncy cartoon movement, smooth natural motion, calm steady lighting, no flashing, no strobe, no text. " +
+  "Not realistic: no photorealistic skin, faces or hands. Only one child in the picture; every other character is a cute cartoon animal.";
 const SAFETY =
   "Calm steady lighting, no flashing, no strobe, no flickering, no fast cuts, no sudden brightness changes, smooth camera with no cuts. Full-frame 16:9 picture, no letterbox, no black bars.";
 
@@ -117,8 +118,9 @@ If that is a worry, the story shows ${name} facing that worry gently, with help 
 Their favorite thing: "${favorite || "stars"}". Include it if it fits.
 
 Rules:
-- Exactly 6 scenes that tell ONE continuous story. Each scene starts right where the last one ended, in the same place unless the story moves on.
-- Each scene "text" = ONE short sentence, 8 to 14 words, with very simple words a 5-year-old knows. Start scenes 2 to 6 with a linking word like "Then", "So", "Next", "Soon" or "At last".
+- Exactly 6 scenes that tell ONE clear story that makes sense when read aloud: scene 1 shows ${name} and the worry or wish, scenes 2 to 5 show step by step how a kind friend helps, and scene 6 shows ${name} brave and happy. Each scene follows clearly from the one before.
+- Each scene "text" = 2 short, simple sentences, 12 to 20 words in total, with words a 5-year-old knows.
+- ${name} is the ONLY person in the story. Every other character (friends, classmates, teachers, helpers) is a cute cartoon animal. No other humans, no grown-ups.
 - Kind and calm. No danger, no villains, nothing scary. A small problem solved with kindness or courage.
 ${kind
     ? `- ${name} is a ${kind}. Use ${kind === "girl" ? "she/her" : "he/him"} for ${name}.`
@@ -229,7 +231,7 @@ async function videoStart(req, env, cors) {
     model: env.VIDEO_MODEL || "MiniMax-Hailuo-2.3-Fast",
     prompt: prompt.slice(0, 1990),
     first_frame_image: b.firstFrame,
-    duration: 6,
+    duration: int(env.VIDEO_DURATION, 10) >= 10 ? 10 : 6, // 6 clips x 10 s = a 1-minute animated movie
     resolution: env.VIDEO_RESOLUTION || "768P",
     prompt_optimizer: true,
     fast_pretreatment: true,

@@ -91,7 +91,7 @@ function initMic() {
 async function checkMagic() {
   state.online = await apiHealthy();
   $("#account-line").textContent = state.online
-    ? "Your 3D story movie takes about 2 minutes."
+    ? "Your 1-minute 3D story movie takes about 3 minutes to make."
     : "The 3D movie studio is resting. You will get a picture story with a gentle voice.";
   if (!state.online) warmUpVoice(); // the offline voice needs its model
 }

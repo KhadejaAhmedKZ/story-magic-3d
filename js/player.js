@@ -40,9 +40,9 @@ export class Player {
     this.items.forEach((it) => {
       const narr = it.narration?.duration || 0;
       const min = it.kind === "title" ? CONFIG.titleSeconds : it.kind === "end" ? CONFIG.endSeconds : CONFIG.sceneMinSeconds;
-      // scene timing follows the voice: the next scene fades in as soon as the voice ends
-      // (a clip shorter than the voice holds its last frame with a slow drift)
-      it.duration = Math.max(min, narr + CONFIG.afterVoiceSeconds);
+      // scene timing: the whole clip plays, and the next scene fades in as soon as both
+      // the clip and the voice are done (a clip shorter than the voice holds its last frame)
+      it.duration = Math.max(min, it.clipDuration || 0, narr + CONFIG.afterVoiceSeconds);
     });
   }
 
@@ -129,7 +129,7 @@ export class Player {
     const it = this.items[i];
     if (it.kind === "scene") {
       // a clip may have arrived late: recompute timing = max(clip, narration + breathing room)
-      it.duration = Math.max(CONFIG.sceneMinSeconds, (it.narration?.duration || 0) + CONFIG.afterVoiceSeconds);
+      it.duration = Math.max(CONFIG.sceneMinSeconds, it.clipDuration || 0, (it.narration?.duration || 0) + CONFIG.afterVoiceSeconds);
     }
     const next = 1 - this.active;
     const incoming = this.layers()[next];
@@ -285,8 +285,8 @@ export class Player {
       const elapsed = t - this.itemStart;
       this.emit("time", this.index, elapsed, it.duration);
       const nx = this.items[this.index + 1];
-      if (elapsed >= it.duration && this.narrDone && nx?.pending && t - (this.holdT ??= t) < 4) {
-        // the next scene's clip is still rendering: linger here a little (max 4 s) so it can play animated
+      if (elapsed >= it.duration && this.narrDone && nx?.pending && t - (this.holdT ??= t) < 15) {
+        // the next scene's clip is still rendering: linger here a little (max 15 s) so it can play animated
       } else if (elapsed >= it.duration && this.narrDone) {
         this.startItem(this.index + 1);
       } else if (elapsed >= it.duration + 25) {

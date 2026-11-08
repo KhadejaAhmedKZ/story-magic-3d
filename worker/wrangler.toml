@@ -22,6 +22,7 @@ TZ_OFFSET_HOURS = "4"            # day resets at midnight UAE time
 TEXT_MODEL = "MiniMax-M3.1-Flash"
 VIDEO_MODEL = "MiniMax-Hailuo-2.3-Fast"   # or "MiniMax-Hailuo-2.3" (slower, a bit sharper)
 VIDEO_RESOLUTION = "768P"                 # "1080P" = sharper, $0.33/clip on Fast
+VIDEO_DURATION = "10"                     # seconds per clip: 10 (1-minute movie, 768P only) or 6
 TTS_MODEL = "speech-2.8-hd"
 
 MOCK = "0"

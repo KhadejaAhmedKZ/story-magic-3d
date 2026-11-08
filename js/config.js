@@ -16,7 +16,7 @@ export const CONFIG = {
   // The whole wait must stay under 2 minutes. When this many seconds have passed since
   // "Make My Story", the movie starts; any clip still rendering keeps going in the background
   // and swaps in before its scene plays (or that scene uses its 3D still with gentle motion).
-  maxWaitSeconds: 105,
+  maxWaitSeconds: 240,      // 10-second clips take longer to animate; wait so every scene is animated
 
   kokoro: { modelId: "onnx-community/Kokoro-82M-v1.0-ONNX", speed: 0.95 },
 
